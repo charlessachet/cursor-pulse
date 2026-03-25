@@ -1,0 +1,31 @@
+{
+  "auth": {
+    "sub": "user_123"
+  },
+  "usage": {
+    "gpt-4": {
+      "numRequests": 480,
+      "numRequestsTotal": 480,
+      "numTokens": 12000,
+      "maxRequestUsage": 500,
+      "maxTokenUsage": null
+    },
+    "startOfMonth": "2026-03-01T00:00:00.000Z"
+  },
+  "hardLimit": {
+    "hardLimit": 150
+  },
+  "invoice": {
+    "items": []
+  },
+  "cycleStart": "2026-03-01T00:00:00.000Z",
+  "team": {
+    "id": 42,
+    "member": {
+      "userId": 99,
+      "fastPremiumRequests": 480,
+      "spendCents": 104016,
+      "hardLimitOverrideDollars": 1500
+    }
+  }
+}

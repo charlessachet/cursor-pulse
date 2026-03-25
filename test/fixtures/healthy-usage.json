@@ -1,0 +1,32 @@
+{
+  "usage": {
+    "gpt-4": {
+      "numRequests": 253,
+      "numRequestsTotal": 253,
+      "numTokens": 12000,
+      "maxRequestUsage": 500,
+      "maxTokenUsage": null
+    },
+    "gpt-3.5-turbo": {
+      "numRequests": 91,
+      "numRequestsTotal": 91,
+      "numTokens": 8000,
+      "maxRequestUsage": null,
+      "maxTokenUsage": null
+    },
+    "startOfMonth": "2026-03-01T00:00:00.000Z"
+  },
+  "hardLimit": {
+    "hardLimit": 150
+  },
+  "invoice": {
+    "items": [
+      {
+        "description": "34 token-based usage calls to claude-4-sonnet, totalling: $1.52",
+        "cents": 152
+      }
+    ]
+  },
+  "cycleStart": "2026-03-01T00:00:00.000Z"
+}
+

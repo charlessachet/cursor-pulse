@@ -1,0 +1,26 @@
+{
+  "usage": {
+    "startOfMonth": "2026-03-01T00:00:00.000Z",
+    "gpt-4": {
+      "numRequests": 40,
+      "maxRequestUsage": null
+    }
+  },
+  "hardLimit": {
+    "hardLimit": 75
+  },
+  "invoice": {
+    "items": [
+      {
+        "description": "Mid-month usage paid",
+        "cents": -1200
+      },
+      {
+        "description": "5 token-based usage calls to gpt-4.1, totalling: $0.80",
+        "cents": 80
+      }
+    ]
+  },
+  "cycleStart": "2026-03-01T00:00:00.000Z"
+}
+

@@ -1,0 +1,34 @@
+{
+  "auth": {
+    "sub": "user_123"
+  },
+  "usage": {
+    "gpt-4": {
+      "numRequests": 0,
+      "numRequestsTotal": 0,
+      "numTokens": 0,
+      "maxRequestUsage": null,
+      "maxTokenUsage": null
+    },
+    "startOfMonth": "2026-02-27T17:24:12.000Z"
+  },
+  "hardLimit": {
+    "noUsageBasedAllowed": true
+  },
+  "invoice": {
+    "pricingDescription": {
+      "id": "sample"
+    },
+    "periodStartMs": "1772323200000",
+    "periodEndMs": "1775001600000"
+  },
+  "cycleStart": "2026-02-27T17:24:12.000Z",
+  "team": {
+    "id": 2542093,
+    "member": {
+      "userId": 123,
+      "spendCents": 104016,
+      "includedSpendCents": 11852
+    }
+  }
+}
