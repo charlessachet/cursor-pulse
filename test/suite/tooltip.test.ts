@@ -66,6 +66,7 @@ suite('renderTooltip', () => {
     assert.match(tooltip, /Activity signal/);
     assert.match(tooltip, /Today by model/);
     assert.match(tooltip, /Today total: \$1\.52 • 34 req/);
+    assert.match(tooltip, /Reset: .* • Updated:/);
     assert.match(tooltip, /Source: Personal/);
   });
 
@@ -83,6 +84,7 @@ suite('renderTooltip', () => {
     };
 
     const tooltip = buildTooltipMarkdown(state, config);
+    assert.match(tooltip, /Reset: \? • Updated:/);
     assert.match(tooltip, /Source: Team/);
   });
 

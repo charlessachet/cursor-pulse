@@ -5,8 +5,6 @@ export function buildTooltipMarkdown(
   config: CursorPulseConfig,
 ): string {
   let markdown = sectionTitle('CursorPulse');
-  markdown += line('Personal-first Cursor usage, right where you work.');
-  markdown += blankLine();
 
   if (!state.hasToken) {
     markdown += line('Connect your Cursor session to start tracking included usage and on-demand spend.');
@@ -111,13 +109,11 @@ export function buildTooltipMarkdown(
     }
   }
 
-  markdown += sectionTitle('Reset');
-  markdown += line(`${formatDate(snapshot.included.resetDate)}`);
-  markdown += blankLine();
-
-  markdown += sectionTitle('Updated');
-  markdown += line(`${formatTime(snapshot.fetchedAt)}`);
-  markdown += line(`Source: ${snapshot.source === 'team' ? 'Team' : 'Personal'}`);
+  markdown += line(
+    `Reset: ${formatDate(snapshot.included.resetDate)} • Updated: ${formatTime(snapshot.fetchedAt)} • Source: ${
+      snapshot.source === 'team' ? 'Team' : 'Personal'
+    }`,
+  );
   return markdown;
 }
 

@@ -26,28 +26,28 @@
     "totalUsageEventsCount": 4,
     "usageEventsDisplay": [
       {
-        "timestamp": "1774398791362",
+        "timestamp": "1774353600000",
         "model": "default",
         "kind": "USAGE_EVENT_KIND_USAGE_BASED",
         "usageBasedCosts": "$0.05",
         "chargedCents": 4.588500022888184
       },
       {
-        "timestamp": "1774398376879",
+        "timestamp": "1774357200000",
         "model": "default",
         "kind": "USAGE_EVENT_KIND_USAGE_BASED",
         "usageBasedCosts": "$0.10",
         "chargedCents": 9.523975372314453
       },
       {
-        "timestamp": "1774394396462",
+        "timestamp": "1774360800000",
         "model": "composer-2",
         "kind": "USAGE_EVENT_KIND_USAGE_BASED",
         "usageBasedCosts": "$0.06",
         "chargedCents": 10.493675231933594
       },
       {
-        "timestamp": "1774308000000",
+        "timestamp": "1774267200000",
         "model": "claude-4.6-opus-high-thinking",
         "kind": "USAGE_EVENT_KIND_USAGE_BASED",
         "usageBasedCosts": "$0.17",
