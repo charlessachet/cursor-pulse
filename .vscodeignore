@@ -1,5 +1,7 @@
 .vscode/**
+.github/**
 .vscode-test/**
+coverage/**
 node_modules/**
 src/**
 test/**

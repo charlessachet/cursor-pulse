@@ -67,10 +67,12 @@ suite('mapUsagePayloadToSnapshot', () => {
     assert.equal(snapshot.activity.avgPerDay, undefined);
     assert.equal(snapshot.activity.beyondIncludedCount, undefined);
     assert.equal(snapshot.analytics?.available, true);
-    assert.equal(snapshot.analytics?.totalSpend, 4.2);
-    assert.equal(snapshot.analytics?.totalRequests, 23);
-    assert.equal(snapshot.analytics?.averageDailySpend, 0.25);
-    assert.equal(snapshot.analytics?.averageDailyRequests, 1.4);
+    assert.equal(snapshot.analytics?.totalSpend, 0.25);
+    assert.equal(snapshot.analytics?.totalRequests, 3);
+    assert.equal(snapshot.analytics?.averageDailySpend, undefined);
+    assert.equal(snapshot.analytics?.averageDailyRequests, undefined);
+    assert.equal(snapshot.analytics?.topModels[0]?.model, 'default');
+    assert.equal(snapshot.analytics?.topModels[0]?.requests, 2);
   });
 
   test('tolerates partial responses and excludes payments', () => {

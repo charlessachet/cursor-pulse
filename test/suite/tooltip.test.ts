@@ -65,8 +65,8 @@ suite('renderTooltip', () => {
     assert.match(tooltip, /On-demand spend/);
     assert.match(tooltip, /Activity signal/);
     assert.match(tooltip, /Today by model/);
-    assert.match(tooltip, /Total today: \$1\.52 • 34 req/);
-    assert.match(tooltip, /Billing source: Personal/);
+    assert.match(tooltip, /Today total: \$1\.52 • 34 req/);
+    assert.match(tooltip, /Source: Personal/);
   });
 
   test('shows team source when team-backed data is used', () => {
@@ -83,7 +83,64 @@ suite('renderTooltip', () => {
     };
 
     const tooltip = buildTooltipMarkdown(state, config);
-    assert.match(tooltip, /Billing source: Team/);
+    assert.match(tooltip, /Source: Team/);
+  });
+
+  test('renders loading copy', () => {
+    const tooltip = buildTooltipMarkdown(
+      {
+        hasToken: true,
+        snapshot: {
+          source: 'personal',
+          fetchedAt: '2026-03-24T10:42:00.000Z',
+          included: {},
+          spend: {},
+          activity: {},
+          status: 'loading',
+        },
+      },
+      config,
+    );
+
+    assert.match(tooltip, /Syncing your latest Cursor usage snapshot/);
+  });
+
+  test('renders auth error copy', () => {
+    const tooltip = buildTooltipMarkdown(
+      {
+        hasToken: true,
+        snapshot: {
+          source: 'personal',
+          fetchedAt: '2026-03-24T10:42:00.000Z',
+          included: {},
+          spend: {},
+          activity: {},
+          status: 'auth_error',
+        },
+      },
+      config,
+    );
+
+    assert.match(tooltip, /Your saved session expired/);
+  });
+
+  test('renders fetch error fallback copy', () => {
+    const tooltip = buildTooltipMarkdown(
+      {
+        hasToken: true,
+        snapshot: {
+          source: 'personal',
+          fetchedAt: '2026-03-24T10:42:00.000Z',
+          included: {},
+          spend: {},
+          activity: {},
+          status: 'fetch_error',
+        },
+      },
+      config,
+    );
+
+    assert.match(tooltip, /couldn't read the latest usage response/);
   });
 
   test('shows cleaner included copy when total is unknown', () => {
@@ -187,8 +244,54 @@ suite('renderTooltip', () => {
     assert.match(tooltip, /Today by model/);
     assert.match(tooltip, /claude-4-sonnet: \$3\.40 • 18 req/);
     assert.match(tooltip, /gpt-4\.1: \$0\.80 • 5 req/);
-    assert.match(tooltip, /Total today: \$4\.20 • 23 req/);
+    assert.match(tooltip, /Today total: \$4\.20 • 23 req/);
     assert.match(tooltip, /Average day this cycle: \$2\.10 • 11\.5 req/);
+  });
+
+  test('omits cycle average row when only today data is available', () => {
+    const tooltip = buildTooltipMarkdown(
+      {
+        hasToken: true,
+        snapshot: {
+          source: 'team',
+          fetchedAt: '2026-03-24T10:42:00.000Z',
+          included: {
+            unit: 'usd',
+            remaining: 0,
+            used: 118.52,
+            resetDate: '2026-03-27T16:24:12.000Z',
+          },
+          spend: {
+            used: 1040.16,
+            unlimited: true,
+          },
+          activity: {},
+          analytics: {
+            available: true,
+            day: '2026-03-24',
+            totalSpend: 0.25,
+            totalRequests: 3,
+            topModels: [
+              {
+                model: 'default',
+                spend: 0.14,
+                requests: 2,
+              },
+              {
+                model: 'composer-2',
+                spend: 0.1,
+                requests: 1,
+              },
+            ],
+          },
+          status: 'ok',
+        },
+      },
+      config,
+    );
+
+    assert.match(tooltip, /Today total: \$0\.25 • 3 req/);
+    assert.doesNotMatch(tooltip, /Average day this cycle/);
   });
 
   test('shows analytics unavailable copy when event data is missing', () => {
@@ -285,6 +388,64 @@ suite('renderTooltip', () => {
     );
 
     assert.doesNotMatch(tooltip, /Today by model/);
+  });
+
+  test('renders spend-only and request-only analytics rows cleanly', () => {
+    const tooltip = buildTooltipMarkdown(
+      {
+        hasToken: true,
+        snapshot: {
+          source: 'personal',
+          fetchedAt: '2026-03-24T10:42:00.000Z',
+          included: {},
+          spend: {},
+          activity: {},
+          analytics: {
+            available: true,
+            day: '2026-03-24',
+            topModels: [
+              { model: 'default', spend: 0.25 },
+              { model: 'composer-2', requests: 2.5 },
+            ],
+          },
+          status: 'ok',
+        },
+      },
+      config,
+    );
+
+    assert.match(tooltip, /Default: \$0\.25/);
+    assert.match(tooltip, /Composer 2: 2\.5 req/);
+  });
+
+  test('formats long model names more cleanly', () => {
+    const tooltip = buildTooltipMarkdown(
+      {
+        hasToken: true,
+        snapshot: {
+          source: 'team',
+          fetchedAt: '2026-03-24T10:42:00.000Z',
+          included: {},
+          spend: {},
+          activity: {},
+          analytics: {
+            available: true,
+            day: '2026-03-24',
+            topModels: [
+              {
+                model: 'claude-4.6-opus-high-thinking',
+                spend: 9.19,
+                requests: 15,
+              },
+            ],
+          },
+          status: 'ok',
+        },
+      },
+      config,
+    );
+
+    assert.match(tooltip, /Claude 4\.6 Opus Thinking: \$9\.19 • 15 req/);
   });
 
   test('shows friendlier signed-out copy', () => {

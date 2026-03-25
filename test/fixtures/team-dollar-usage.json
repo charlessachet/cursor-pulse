@@ -16,31 +16,44 @@
     "noUsageBasedAllowed": true
   },
   "invoice": {
-    "usageEvents": [
-      {
-        "createdAt": "2026-03-24T18:00:00.000Z",
-        "modelName": "claude-4-sonnet",
-        "costCents": 340,
-        "requests": 18
-      },
-      {
-        "createdAt": "2026-03-24T19:30:00.000Z",
-        "modelName": "gpt-4.1",
-        "costCents": 80,
-        "requests": 5
-      },
-      {
-        "createdAt": "2026-03-23T18:00:00.000Z",
-        "modelName": "claude-4-sonnet",
-        "costCents": 210,
-        "requests": 11
-      }
-    ],
     "pricingDescription": {
       "id": "sample"
     },
     "periodStartMs": "1772323200000",
     "periodEndMs": "1775001600000"
+  },
+  "filteredUsageEvents": {
+    "totalUsageEventsCount": 4,
+    "usageEventsDisplay": [
+      {
+        "timestamp": "1774398791362",
+        "model": "default",
+        "kind": "USAGE_EVENT_KIND_USAGE_BASED",
+        "usageBasedCosts": "$0.05",
+        "chargedCents": 4.588500022888184
+      },
+      {
+        "timestamp": "1774398376879",
+        "model": "default",
+        "kind": "USAGE_EVENT_KIND_USAGE_BASED",
+        "usageBasedCosts": "$0.10",
+        "chargedCents": 9.523975372314453
+      },
+      {
+        "timestamp": "1774394396462",
+        "model": "composer-2",
+        "kind": "USAGE_EVENT_KIND_USAGE_BASED",
+        "usageBasedCosts": "$0.06",
+        "chargedCents": 10.493675231933594
+      },
+      {
+        "timestamp": "1774308000000",
+        "model": "claude-4.6-opus-high-thinking",
+        "kind": "USAGE_EVENT_KIND_USAGE_BASED",
+        "usageBasedCosts": "$0.17",
+        "chargedCents": 17
+      }
+    ]
   },
   "cycleStart": "2026-02-27T17:24:12.000Z",
   "team": {

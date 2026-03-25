@@ -1,6 +1,11 @@
 # CursorPulse
 
-CursorPulse is a local-first Cursor/VS Code extension that shows your personal Cursor usage in the status bar.
+![CI](https://github.com/charlessachet/cursor-pulse/actions/workflows/ci.yml/badge.svg)
+![Coverage](https://img.shields.io/badge/coverage-90.09%25-brightgreen)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue)
+![VS%20Code%20API](https://img.shields.io/badge/VS%20Code%20API-1.96-blue)
+
+CursorPulse is a private, local-first Cursor/VS Code extension that shows Cursor usage in the status bar with a simple personal-first UX.
 
 It supports both:
 
@@ -12,7 +17,7 @@ V1 tracks:
 - included usage
 - extra paid usage
 - derived activity beyond the included quota
-- today-by-model usage when Cursor returns event-level invoice data
+- today-by-model usage when Cursor exposes filtered usage history events
 
 It does not try to estimate Cursor's private internal compute cost.
 
@@ -20,14 +25,15 @@ It does not try to estimate Cursor's private internal compute cost.
 
 CursorPulse V1 is intentionally small and local:
 
-- personal usage only
-- automatic team-backed usage fallback when Cursor exposes your usage through team endpoints
+- private/local install flow, not public marketplace distribution
+- personal-first setup with automatic team-backed usage fallback
 - secure session token storage in extension secret storage
 - one status bar item
 - one tooltip with usage details
 - manual refresh
 - automatic polling
 - stale/auth/error states
+- today usage from filtered history events when Cursor exposes them
 
 Not in V1:
 
@@ -138,6 +144,12 @@ Run the test suite:
 npm test
 ```
 
+Generate a coverage report:
+
+```bash
+npm run test:coverage
+```
+
 Run the extension-host smoke test separately:
 
 ```bash
@@ -147,11 +159,20 @@ npm run test:extension
 The current tests cover:
 
 - session token parsing
+- command handlers
+- Cursor API client fetch flow
+- diagnostics, scheduler, and secret storage
 - usage mapping from redacted fixtures
 - stale/auth refresh handling
 - status bar rendering
 - tooltip rendering
 - extension command registration smoke test
+
+Current unit coverage:
+
+- `67` passing unit tests
+- `90.09%` statement coverage across unit-testable runtime files
+- `100%` statement coverage for the command layer
 
 ## Quick Setup
 
@@ -257,6 +278,7 @@ Current fetch flow:
 5. Try `POST /api/dashboard/teams`
 6. Try `POST /api/dashboard/team`
 7. Try `POST /api/dashboard/get-team-spend`
+8. Try `POST /api/dashboard/get-filtered-usage-events` for today-only history rows
 
 If team-backed usage is available, CursorPulse prefers those included/spend values. Otherwise it falls back to the personal usage responses.
 
@@ -268,7 +290,9 @@ When Cursor returns invoice usage events, the tooltip also shows:
 - total usage for today
 - average daily usage across the current billing cycle
 
-If Cursor does not return event-level usage data for your account, CursorPulse shows a short unavailable message instead of guessing.
+For team-backed accounts that expose the history endpoint, CursorPulse also uses filtered usage events for a real today-only breakdown.
+
+If Cursor does not return usable event-level usage data for your account, CursorPulse shows a short unavailable message instead of guessing.
 
 The raw responses are normalized into a single internal snapshot model before the UI renders.
 

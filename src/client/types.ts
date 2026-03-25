@@ -95,15 +95,20 @@ export interface CursorInvoiceResponse {
 
 export interface CursorInvoiceUsageEvent {
   timestamp?: string;
+  timestampMs?: number | string;
   createdAt?: string;
   occurredAt?: string;
   model?: string;
   modelName?: string;
   modelId?: string;
+  kind?: string;
   cents?: number;
   costCents?: number;
   spendCents?: number;
   amountCents?: number;
+  chargedCents?: number;
+  usageBasedCosts?: string;
+  requestsCosts?: number;
   numRequests?: number;
   requests?: number;
   requestCount?: number;
@@ -112,6 +117,7 @@ export interface CursorInvoiceUsageEvent {
 }
 
 export interface CursorAuthMeResponse {
+  id?: number;
   email?: string;
   sub?: string;
   name?: string;
@@ -148,12 +154,25 @@ export interface CursorPersonalUsagePayload {
   usage: CursorUsageResponse;
   hardLimit: CursorHardLimitResponse;
   invoice: CursorInvoiceResponse;
+  filteredUsageEvents?: CursorFilteredUsageEventsResponse;
   auth?: CursorAuthMeResponse;
   cycleStart?: string;
   team?: {
     id: number;
     member?: CursorTeamMemberSpend;
   };
+}
+
+export interface CursorFilteredUsageEventsResponse {
+  totalUsageEventsCount?: number;
+  usageEventsDisplay?: CursorInvoiceUsageEvent[];
+  rows?: CursorInvoiceUsageEvent[];
+  usageEvents?: CursorInvoiceUsageEvent[];
+  events?: CursorInvoiceUsageEvent[];
+  items?: CursorInvoiceUsageEvent[];
+  results?: CursorInvoiceUsageEvent[];
+  data?: CursorInvoiceUsageEvent[] | { rows?: CursorInvoiceUsageEvent[]; events?: CursorInvoiceUsageEvent[]; items?: CursorInvoiceUsageEvent[] };
+  [key: string]: unknown;
 }
 
 export type CursorClientErrorKind = 'auth' | 'network' | 'http' | 'parse';

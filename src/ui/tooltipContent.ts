@@ -4,58 +4,62 @@ export function buildTooltipMarkdown(
   state: CursorPulseViewState,
   config: CursorPulseConfig,
 ): string {
-  let markdown = '**CursorPulse**\n';
-  markdown += 'Personal-first Cursor usage, right where you work.\n\n';
+  let markdown = sectionTitle('CursorPulse');
+  markdown += line('Personal-first Cursor usage, right where you work.');
+  markdown += blankLine();
 
   if (!state.hasToken) {
-    markdown += 'Connect your Cursor session to start tracking included usage and on-demand spend.\n';
-    markdown += 'Click the status bar item or run `CursorPulse: Set Session Token`.\n';
+    markdown += line('Connect your Cursor session to start tracking included usage and on-demand spend.');
+    markdown += line('Click the status bar item or run `CursorPulse: Set Session Token`.');
     return markdown;
   }
 
   const snapshot = state.snapshot;
   if (!snapshot || snapshot.status === 'loading') {
-    markdown += 'Syncing your latest Cursor usage snapshot.\n';
+    markdown += line('Syncing your latest Cursor usage snapshot.');
     return markdown;
   }
 
   if (snapshot.status === 'auth_error') {
-    markdown += 'Your saved session expired.\n\n';
-    markdown += 'Click the status bar item or run `CursorPulse: Set Session Token` to reconnect.\n';
+    markdown += line('Your saved session expired.');
+    markdown += blankLine();
+    markdown += line('Click the status bar item or run `CursorPulse: Set Session Token` to reconnect.');
     return markdown;
   }
 
   if (snapshot.status === 'fetch_error') {
-    markdown += `${state.message ?? "CursorPulse couldn't read the latest usage response."}\n`;
+    markdown += line(state.message ?? "CursorPulse couldn't read the latest usage response.");
     return markdown;
   }
 
   if (snapshot.status === 'stale') {
-    markdown += 'Using your last good snapshot while Cursor sync catches up.\n';
-    markdown += `Last good update was ${relativeMinutes(snapshot.fetchedAt)} ago.\n\n`;
+    markdown += line('Using your last good snapshot while Cursor sync catches up.');
+    markdown += line(`Last good update was ${relativeMinutes(snapshot.fetchedAt)} ago.`);
+    markdown += blankLine();
   }
 
-  markdown += '**Included left**\n';
+  markdown += sectionTitle('Included left');
   markdown += formatIncludedLine(snapshot.included.remaining, snapshot.included.total, snapshot.included.unit);
   if (snapshot.included.used !== undefined) {
     if (snapshot.included.total !== undefined) {
-      markdown += `${formatIncludedValue(snapshot.included.used, snapshot.included.unit)} used this cycle\n`;
+      markdown += line(`${formatIncludedValue(snapshot.included.used, snapshot.included.unit)} used this cycle`);
     } else if (snapshot.included.unit === 'usd') {
-      markdown += `Included usage spent this cycle: ${formatCurrency(snapshot.included.used)}\n`;
+      markdown += line(`Included usage spent this cycle: ${formatCurrency(snapshot.included.used)}`);
     } else {
-      markdown += `Used this cycle: ${formatIncludedValue(snapshot.included.used, snapshot.included.unit)}\n`;
+      markdown += line(`Used this cycle: ${formatIncludedValue(snapshot.included.used, snapshot.included.unit)}`);
     }
   }
-  markdown += '\n';
+  markdown += blankLine();
 
-  markdown += '**On-demand spend**\n';
+  markdown += sectionTitle('On-demand spend');
   if (snapshot.spend.unlimited) {
-    markdown += `${formatCurrency(snapshot.spend.used)} / Unlimited\n`;
-    markdown += 'Spend cap: Unlimited\n\n';
+    markdown += line(`${formatCurrency(snapshot.spend.used)} / Unlimited`);
+    markdown += line('Spend cap: Unlimited');
   } else {
-    markdown += `${formatCurrency(snapshot.spend.used)} / ${formatCurrency(snapshot.spend.limit)}\n`;
-    markdown += `Remaining budget: ${formatCurrency(snapshot.spend.remaining)}\n\n`;
+    markdown += line(`${formatCurrency(snapshot.spend.used)} / ${formatCurrency(snapshot.spend.limit)}`);
+    markdown += line(`Remaining budget: ${formatCurrency(snapshot.spend.remaining)}`);
   }
+  markdown += blankLine();
 
   if (
     config.showUnlimitedActivity &&
@@ -63,44 +67,57 @@ export function buildTooltipMarkdown(
       snapshot.activity.beyondIncludedCount !== undefined ||
       snapshot.activity.projectedExhaustionDate)
   ) {
-    markdown += '**Activity signal**\n';
+    markdown += sectionTitle('Activity signal');
     if (snapshot.activity.avgPerDay !== undefined) {
-      markdown += `Average daily use: ${formatDecimal(snapshot.activity.avgPerDay)}\n`;
+      markdown += line(`Average daily use: ${formatDecimal(snapshot.activity.avgPerDay)}`);
     }
     if (snapshot.activity.beyondIncludedCount !== undefined) {
-      markdown += `Beyond included quota: ${formatWhole(snapshot.activity.beyondIncludedCount)} requests\n`;
+      markdown += line(`Beyond included quota: ${formatWhole(snapshot.activity.beyondIncludedCount)} requests`);
     }
     if (snapshot.activity.projectedExhaustionDate) {
-      markdown += `Estimated quota exhaustion: ${formatDate(snapshot.activity.projectedExhaustionDate)}\n`;
+      markdown += line(`Estimated quota exhaustion: ${formatDate(snapshot.activity.projectedExhaustionDate)}`);
     }
-    markdown += '\n';
+    markdown += blankLine();
   }
 
   if (config.showModelAnalytics) {
-    markdown += '**Today by model**\n';
+    markdown += sectionTitle('Today by model');
     if (!snapshot.analytics || !snapshot.analytics.available) {
-      markdown += 'Daily model breakdown unavailable for this account.\n\n';
+      markdown += line('Daily model breakdown unavailable for this account.');
+      markdown += blankLine();
     } else {
       for (const row of snapshot.analytics.topModels) {
-        markdown += `${row.model}: ${formatAnalyticsRow(row.spend, row.requests)}\n`;
+        markdown += line(`${formatModelName(row.model)}: ${formatAnalyticsRow(row.spend, row.requests)}`);
       }
-      markdown += `Total today: ${formatAnalyticsRow(
-        snapshot.analytics.totalSpend,
-        snapshot.analytics.totalRequests,
-      )}\n`;
-      markdown += `Average day this cycle: ${formatAnalyticsRow(
-        snapshot.analytics.averageDailySpend,
-        snapshot.analytics.averageDailyRequests,
-      )}\n\n`;
+      if (
+        snapshot.analytics.totalSpend !== undefined ||
+        snapshot.analytics.totalRequests !== undefined
+      ) {
+        markdown += line(`Today total: ${formatAnalyticsRow(
+          snapshot.analytics.totalSpend,
+          snapshot.analytics.totalRequests,
+        )}`);
+      }
+      if (
+        snapshot.analytics.averageDailySpend !== undefined ||
+        snapshot.analytics.averageDailyRequests !== undefined
+      ) {
+        markdown += line(`Average day this cycle: ${formatAnalyticsRow(
+          snapshot.analytics.averageDailySpend,
+          snapshot.analytics.averageDailyRequests,
+        )}`);
+      }
+      markdown += blankLine();
     }
   }
 
-  markdown += '**Resets**\n';
-  markdown += `${formatDate(snapshot.included.resetDate)}\n\n`;
+  markdown += sectionTitle('Reset');
+  markdown += line(`${formatDate(snapshot.included.resetDate)}`);
+  markdown += blankLine();
 
-  markdown += '**Updated**\n';
-  markdown += `${formatTime(snapshot.fetchedAt)}\n`;
-  markdown += `Billing source: ${snapshot.source === 'team' ? 'Team' : 'Personal'}\n`;
+  markdown += sectionTitle('Updated');
+  markdown += line(`${formatTime(snapshot.fetchedAt)}`);
+  markdown += line(`Source: ${snapshot.source === 'team' ? 'Team' : 'Personal'}`);
   return markdown;
 }
 
@@ -171,14 +188,14 @@ function formatIncludedLine(
   unit: 'requests' | 'usd' | undefined,
 ): string {
   if (remaining === undefined && total === undefined) {
-    return '? remaining\n';
+    return line('? remaining');
   }
 
   if (remaining !== undefined && total === undefined) {
-    return `${formatIncludedValue(remaining, unit)} remaining\n`;
+    return line(`${formatIncludedValue(remaining, unit)} remaining`);
   }
 
-  return `${formatIncludedValue(remaining, unit)} of ${formatIncludedValue(total, unit)} remaining\n`;
+  return line(`${formatIncludedValue(remaining, unit)} of ${formatIncludedValue(total, unit)} remaining`);
 }
 
 function formatAnalyticsRow(spend: number | undefined, requests: number | undefined): string {
@@ -199,4 +216,29 @@ function formatAnalyticsRow(spend: number | undefined, requests: number | undefi
 
 function formatAnalyticsRequests(value: number): string {
   return Number.isInteger(value) ? `${formatWhole(value)} req` : `${formatDecimal(value)} req`;
+}
+
+function sectionTitle(value: string): string {
+  return `**${value}**  \n`;
+}
+
+function line(value: string): string {
+  return `${value}  \n`;
+}
+
+function blankLine(): string {
+  return '\n';
+}
+
+function formatModelName(model: string): string {
+  switch (model) {
+    case 'composer-2':
+      return 'Composer 2';
+    case 'default':
+      return 'Default';
+    case 'claude-4.6-opus-high-thinking':
+      return 'Claude 4.6 Opus Thinking';
+    default:
+      return model;
+  }
 }

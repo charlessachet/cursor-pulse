@@ -53,6 +53,19 @@ suite('UsageService', () => {
     assert.equal(state.snapshot?.included.remaining, 247);
   });
 
+  test('returns a loading snapshot on startup when token exists without cache', async () => {
+    const service = new UsageService(
+      fakeContext(),
+      fakeTokenStore('abc%3A%3Arest'),
+      fakeClient(baseSnapshot),
+      fakeDiagnostics(),
+    );
+
+    const state = await service.getInitialState();
+    assert.equal(state.hasToken, true);
+    assert.equal(state.snapshot?.status, 'loading');
+  });
+
   test('returns auth state on auth errors', async () => {
     const service = new UsageService(
       fakeContext(),
@@ -92,6 +105,45 @@ suite('UsageService', () => {
     assert.equal(result.retryAfterMs, undefined);
   });
 
+  test('returns a fetch error on parse errors without cache', async () => {
+    const service = new UsageService(
+      fakeContext(),
+      fakeTokenStore('abc%3A%3Arest'),
+      fakeThrowingClient(new CursorClientError('parse', 'bad json')),
+      fakeDiagnostics(),
+    );
+
+    const result = await service.refresh();
+    assert.equal(result.state.snapshot?.status, 'fetch_error');
+    assert.equal(result.state.message, 'Could not parse Cursor usage response.');
+  });
+
+  test('falls back to stale cache on unexpected failures', async () => {
+    const service = new UsageService(
+      fakeContext(baseSnapshot),
+      fakeTokenStore('abc%3A%3Arest'),
+      fakeThrowingClient(new Error('boom')),
+      fakeDiagnostics(),
+    );
+
+    const result = await service.refresh();
+    assert.equal(result.state.snapshot?.status, 'stale');
+    assert.equal(result.retryAfterMs, 30000);
+  });
+
+  test('returns fetch error on unexpected failures without cache', async () => {
+    const service = new UsageService(
+      fakeContext(),
+      fakeTokenStore('abc%3A%3Arest'),
+      fakeThrowingClient(new Error('boom')),
+      fakeDiagnostics(),
+    );
+
+    const result = await service.refresh();
+    assert.equal(result.state.snapshot?.status, 'fetch_error');
+    assert.equal(result.retryAfterMs, 30000);
+  });
+
   test('builds a sanitized diagnostics report', async () => {
     const context = fakeContext(baseSnapshot);
     const service = new UsageService(
@@ -113,6 +165,20 @@ suite('UsageService', () => {
     assert.equal(report.lastRawPayload?.auth?.email, '<redacted>');
     assert.equal(report.lastRawPayload?.auth?.sub, '<redacted>');
     assert.equal(report.lastRawPayload?.team?.member?.userId, '<redacted>');
+  });
+
+  test('clearCachedSnapshot removes the saved snapshot', async () => {
+    const context = fakeContext(baseSnapshot);
+    const service = new UsageService(
+      context,
+      fakeTokenStore('abc%3A%3Arest'),
+      fakeClient(baseSnapshot),
+      fakeDiagnostics(),
+    );
+
+    await service.clearCachedSnapshot();
+    const state = await service.getInitialState();
+    assert.equal(state.snapshot?.status, 'loading');
   });
 });
 

@@ -108,7 +108,7 @@ function buildDailyAnalytics(
   fetchedAt: Date,
 ): CursorPulseSnapshot['analytics'] {
   const day = formatLocalDayKey(fetchedAt);
-  const usageEvents = extractUsageEvents(payload.invoice);
+  const { usageEvents, isDayScoped } = extractUsageEvents(payload);
   if (usageEvents.length === 0) {
     return {
       available: false,
@@ -117,7 +117,6 @@ function buildDailyAnalytics(
     };
   }
 
-  const cycleStart = payload.cycleStart ? new Date(payload.cycleStart) : undefined;
   const byModel = new Map<string, { spend: number; requests: number }>();
 
   let todaySpend = 0;
@@ -177,6 +176,7 @@ function buildDailyAnalytics(
     })
     .slice(0, 3);
 
+  const cycleStart = !isDayScoped && payload.cycleStart ? new Date(payload.cycleStart) : undefined;
   const elapsedDays = cycleStart ? Math.max(1, daysSince(cycleStart, fetchedAt)) : 1;
 
   return {
@@ -189,8 +189,10 @@ function buildDailyAnalytics(
     day,
     totalSpend: hasSpendDimension ? roundCurrency(todaySpend) : undefined,
     totalRequests: hasRequestDimension ? todayRequests : undefined,
-    averageDailySpend: hasSpendDimension ? roundCurrency(cycleSpend / elapsedDays) : undefined,
-    averageDailyRequests: hasRequestDimension ? round1(cycleRequests / elapsedDays) : undefined,
+    averageDailySpend:
+      !isDayScoped && hasSpendDimension ? roundCurrency(cycleSpend / elapsedDays) : undefined,
+    averageDailyRequests:
+      !isDayScoped && hasRequestDimension ? round1(cycleRequests / elapsedDays) : undefined,
     topModels,
   };
 }
@@ -221,28 +223,78 @@ function finiteNumber(value: number | null | undefined): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 }
 
-function extractUsageEvents(invoice: CursorPersonalUsagePayload['invoice']): CursorInvoiceUsageEvent[] {
-  if (Array.isArray(invoice.usageEvents)) {
-    return invoice.usageEvents;
+function extractUsageEvents(payload: CursorPersonalUsagePayload): {
+  usageEvents: CursorInvoiceUsageEvent[];
+  isDayScoped: boolean;
+} {
+  const filtered = payload.filteredUsageEvents;
+  if (Array.isArray(filtered?.usageEventsDisplay)) {
+    return {
+      usageEvents: filtered.usageEventsDisplay,
+      isDayScoped: true,
+    };
   }
 
-  if (Array.isArray(invoice.events)) {
-    return invoice.events;
+  if (Array.isArray(filtered?.rows)) {
+    return {
+      usageEvents: filtered.rows,
+      isDayScoped: true,
+    };
   }
 
-  return [];
+  if (Array.isArray(filtered?.usageEvents)) {
+    return {
+      usageEvents: filtered.usageEvents,
+      isDayScoped: true,
+    };
+  }
+
+  if (Array.isArray(filtered?.events)) {
+    return {
+      usageEvents: filtered.events,
+      isDayScoped: true,
+    };
+  }
+
+  if (Array.isArray(filtered?.items)) {
+    return {
+      usageEvents: filtered.items,
+      isDayScoped: true,
+    };
+  }
+
+  if (Array.isArray(filtered?.results)) {
+    return {
+      usageEvents: filtered.results,
+      isDayScoped: true,
+    };
+  }
+
+  if (Array.isArray(payload.invoice.usageEvents)) {
+    return {
+      usageEvents: payload.invoice.usageEvents,
+      isDayScoped: false,
+    };
+  }
+
+  if (Array.isArray(payload.invoice.events)) {
+    return {
+      usageEvents: payload.invoice.events,
+      isDayScoped: false,
+    };
+  }
+
+  return {
+    usageEvents: [],
+    isDayScoped: false,
+  };
 }
 
 function normalizeUsageEvent(
   event: CursorInvoiceUsageEvent,
 ): { timestamp: Date; model: string; spend?: number; requests?: number } | undefined {
-  const timestampValue = pickString(event.timestamp, event.createdAt, event.occurredAt);
-  if (!timestampValue) {
-    return undefined;
-  }
-
-  const timestamp = new Date(timestampValue);
-  if (Number.isNaN(timestamp.getTime())) {
+  const timestamp = parseUsageEventTimestamp(event);
+  if (!timestamp) {
     return undefined;
   }
 
@@ -258,10 +310,12 @@ function normalizeUsageEvent(
   }
 
   const spendCents = pickNumber(
+    event.chargedCents,
     event.cents,
     event.costCents,
     event.spendCents,
     event.amountCents,
+    nestedNumber(event, ['tokenUsage', 'totalCents']),
     nestedNumber(event, ['cost', 'cents']),
     nestedNumber(event, ['amount', 'cents']),
   );
@@ -274,7 +328,9 @@ function normalizeUsageEvent(
     nestedNumber(event, ['metadata', 'requestCount']),
   );
 
-  if (spendCents === undefined && requestCount === undefined) {
+  const eventCount = requestCount ?? inferUsageEventCount(event);
+
+  if (spendCents === undefined && eventCount === undefined) {
     return undefined;
   }
 
@@ -282,8 +338,52 @@ function normalizeUsageEvent(
     timestamp,
     model,
     spend: spendCents !== undefined ? spendCents / 100 : undefined,
-    requests: requestCount,
+    requests: eventCount,
   };
+}
+
+function parseUsageEventTimestamp(event: CursorInvoiceUsageEvent): Date | undefined {
+  const epochMs = pickNumber(
+    typeof event.timestampMs === 'string' ? Number.parseInt(event.timestampMs, 10) : event.timestampMs,
+    typeof event.timestamp === 'string' && /^\d+$/.test(event.timestamp)
+      ? Number.parseInt(event.timestamp, 10)
+      : undefined,
+  );
+  if (epochMs !== undefined) {
+    const fromEpoch = new Date(epochMs);
+    if (!Number.isNaN(fromEpoch.getTime())) {
+      return fromEpoch;
+    }
+  }
+
+  const timestampValue = pickString(event.timestamp, event.createdAt, event.occurredAt);
+  if (!timestampValue) {
+    return undefined;
+  }
+
+  const parsed = new Date(timestampValue);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+}
+
+function inferUsageEventCount(event: CursorInvoiceUsageEvent): number | undefined {
+  if (
+    pickNumber(
+      event.chargedCents,
+      nestedNumber(event, ['tokenUsage', 'totalCents']),
+      event.cents,
+      event.costCents,
+      event.spendCents,
+      event.amountCents,
+    ) !== undefined
+  ) {
+    return 1;
+  }
+
+  if (typeof event.usageBasedCosts === 'string' || typeof event.kind === 'string') {
+    return 1;
+  }
+
+  return undefined;
 }
 
 function pickString(...values: Array<string | undefined>): string | undefined {

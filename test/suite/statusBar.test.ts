@@ -1,6 +1,6 @@
 import * as assert from 'node:assert/strict';
 import { CursorPulseConfig, CursorPulseViewState } from '../../src/client/types';
-import { getStatusBarCommand, renderStatusBarText } from '../../src/ui/statusBar';
+import { applyStatusBarState, getStatusBarCommand, renderStatusBarText } from '../../src/ui/statusBar';
 
 const config: CursorPulseConfig = {
   pollMinutes: 15,
@@ -147,6 +147,81 @@ suite('renderStatusBarText', () => {
       ),
       'CursorPulse: reconnect',
     );
+  });
+
+  test('renders loading text', () => {
+    assert.equal(
+      renderStatusBarText(
+        {
+          hasToken: true,
+          snapshot: {
+            source: 'personal',
+            fetchedAt: '2026-03-24T10:42:00.000Z',
+            included: {},
+            spend: {},
+            activity: {},
+            status: 'loading',
+          },
+        },
+        config,
+      ),
+      'CursorPulse: syncing',
+    );
+  });
+
+  test('renders unavailable text for fetch errors', () => {
+    assert.equal(
+      renderStatusBarText(
+        {
+          hasToken: true,
+          snapshot: {
+            source: 'personal',
+            fetchedAt: '2026-03-24T10:42:00.000Z',
+            included: {},
+            spend: {},
+            activity: {},
+            status: 'fetch_error',
+          },
+        },
+        config,
+      ),
+      'CursorPulse: unavailable',
+    );
+  });
+
+  test('applyStatusBarState updates the item and shows it', () => {
+    const item = {
+      command: '',
+      text: '',
+      tooltip: 'existing',
+      shown: false,
+      show() {
+        this.shown = true;
+      },
+    };
+
+    applyStatusBarState(
+      item as never,
+      {
+        hasToken: true,
+        snapshot: {
+          source: 'personal',
+          fetchedAt: '2026-03-24T10:42:00.000Z',
+          included: {},
+          spend: {
+            used: 1.52,
+          },
+          activity: {},
+          status: 'ok',
+        },
+      },
+      config,
+    );
+
+    assert.equal(item.command, 'cursorPulse.refresh');
+    assert.equal(item.text, '◈ ? | $1.52');
+    assert.equal(item.tooltip, undefined);
+    assert.equal(item.shown, true);
   });
 
   test('renders signed-out text', () => {

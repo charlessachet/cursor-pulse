@@ -1,6 +1,7 @@
 import {
   CursorAuthMeResponse,
   CursorClientError,
+  CursorFilteredUsageEventsResponse,
   CursorHardLimitResponse,
   CursorInvoiceResponse,
   CursorPersonalUsagePayload,
@@ -58,12 +59,18 @@ export class CursorClient {
     );
 
     const team = await this.tryFetchTeamUsage(token);
+    const filteredUsageEvents = await this.tryFetchFilteredUsageEvents(
+      token,
+      team?.id,
+      auth.id ?? team?.member?.userId,
+    );
 
     return {
       auth,
       usage,
       hardLimit,
       invoice,
+      filteredUsageEvents,
       cycleStart,
       team,
     };
@@ -151,6 +158,69 @@ export class CursorClient {
       return undefined;
     }
   }
+
+  private async tryFetchFilteredUsageEvents(
+    token: string,
+    teamId: number | undefined,
+    userId: number | undefined,
+  ): Promise<CursorFilteredUsageEventsResponse | undefined> {
+    if (!teamId || !userId) {
+      return undefined;
+    }
+
+    try {
+      const { startDate, endDate } = localDayRange(new Date());
+      const pageSize = 500;
+      let page = 1;
+      let totalUsageEventsCount: number | undefined;
+      const usageEventsDisplay: CursorFilteredUsageEventsResponse['usageEventsDisplay'] = [];
+
+      while (page <= 10) {
+        const response = await this.requestJson<CursorFilteredUsageEventsResponse>(
+          '/api/dashboard/get-filtered-usage-events',
+          token,
+          {
+            method: 'POST',
+            body: {
+              teamId,
+              userId,
+              startDate: String(startDate),
+              endDate: String(endDate),
+              page,
+              pageSize,
+            },
+          },
+        );
+
+        totalUsageEventsCount ??= response.totalUsageEventsCount;
+        const rows = extractFilteredUsageEventRows(response);
+        if (rows.length === 0) {
+          break;
+        }
+
+        usageEventsDisplay.push(...rows);
+        if (rows.length < pageSize) {
+          break;
+        }
+
+        if (totalUsageEventsCount !== undefined && usageEventsDisplay.length >= totalUsageEventsCount) {
+          break;
+        }
+
+        page += 1;
+      }
+
+      return {
+        totalUsageEventsCount,
+        usageEventsDisplay,
+      };
+    } catch (error) {
+      this.diagnostics.info('Filtered daily usage events were unavailable; continuing without daily history.', {
+        error: String(error),
+      });
+      return undefined;
+    }
+  }
 }
 
 function buildHeaders(token: string): Record<string, string> {
@@ -173,4 +243,65 @@ export function extractUserIdFromToken(token: string): string {
   }
 
   return token.slice(0, separator);
+}
+
+function localDayRange(value: Date): { startDate: number; endDate: number } {
+  const start = new Date(value);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(value);
+  end.setHours(23, 59, 59, 999);
+
+  return {
+    startDate: start.getTime(),
+    endDate: end.getTime(),
+  };
+}
+
+function extractFilteredUsageEventRows(
+  response: CursorFilteredUsageEventsResponse,
+): NonNullable<CursorFilteredUsageEventsResponse['usageEventsDisplay']> {
+  if (Array.isArray(response.usageEventsDisplay)) {
+    return response.usageEventsDisplay;
+  }
+
+  if (Array.isArray(response.rows)) {
+    return response.rows;
+  }
+
+  if (Array.isArray(response.usageEvents)) {
+    return response.usageEvents;
+  }
+
+  if (Array.isArray(response.events)) {
+    return response.events;
+  }
+
+  if (Array.isArray(response.items)) {
+    return response.items;
+  }
+
+  if (Array.isArray(response.results)) {
+    return response.results;
+  }
+
+  if (Array.isArray(response.data)) {
+    return response.data;
+  }
+
+  if (response.data && typeof response.data === 'object') {
+    if (Array.isArray(response.data.rows)) {
+      return response.data.rows;
+    }
+
+    if (Array.isArray(response.data.events)) {
+      return response.data.events;
+    }
+
+    if (Array.isArray(response.data.items)) {
+      return response.data.items;
+    }
+  }
+
+  return [];
 }

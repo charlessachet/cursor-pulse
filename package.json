@@ -1,7 +1,7 @@
 {
   "name": "cursor-pulse",
   "displayName": "CursorPulse",
-  "description": "Personal-first Cursor usage tracking in the status bar.",
+  "description": "Private local-first Cursor usage tracking with quota, spend, and daily history in the status bar.",
   "version": "0.1.0",
   "publisher": "local",
   "private": true,
@@ -98,16 +98,20 @@
     "watch": "tsc -watch -p ./",
     "package:vsix": "npm run compile && npx @vscode/vsce package --allow-missing-repository",
     "test": "npm run test:unit",
-    "test:unit": "npm run compile && mocha --ui tdd ./out/test/suite/tokenParsing.test.js ./out/test/suite/usageMapper.test.js ./out/test/suite/usageService.test.js ./out/test/suite/statusBar.test.js ./out/test/suite/tooltip.test.js",
+    "test:unit": "npm run compile && mocha --ui tdd ./out/test/suite/tokenParsing.test.js ./out/test/suite/commands.test.js ./out/test/suite/cursorClient.test.js ./out/test/suite/infra.test.js ./out/test/suite/usageMapper.test.js ./out/test/suite/usageService.test.js ./out/test/suite/statusBar.test.js ./out/test/suite/tooltip.test.js ./out/test/suite/tooltipWrapper.test.js",
+    "test:coverage": "npm run compile && c8 --all --reporter=text --reporter=lcov --include=out/src/**/*.js --exclude=out/src/client/types.js --exclude=out/src/commands/refresh.js --exclude=out/src/extension.js mocha --ui tdd ./out/test/suite/tokenParsing.test.js ./out/test/suite/commands.test.js ./out/test/suite/cursorClient.test.js ./out/test/suite/infra.test.js ./out/test/suite/usageMapper.test.js ./out/test/suite/usageService.test.js ./out/test/suite/statusBar.test.js ./out/test/suite/tooltip.test.js ./out/test/suite/tooltipWrapper.test.js",
     "test:extension": "npm run compile && node ./out/test/runTest.js"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
+    "@types/mock-require": "^3.0.0",
     "@types/node": "^22.13.10",
     "@types/vscode": "^1.96.0",
     "@vscode/vsce": "^3.6.1",
     "@vscode/test-electron": "^2.5.2",
+    "c8": "^10.1.3",
     "mocha": "^11.1.0",
+    "mock-require": "^3.0.3",
     "typescript": "^5.8.2"
   }
 }
