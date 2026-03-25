@@ -30,6 +30,19 @@ export type CursorPulseSnapshot = {
     beyondIncludedCount?: number;
     projectedExhaustionDate?: string;
   };
+  analytics?: {
+    available: boolean;
+    day: string;
+    totalSpend?: number;
+    totalRequests?: number;
+    averageDailySpend?: number;
+    averageDailyRequests?: number;
+    topModels: Array<{
+      model: string;
+      spend?: number;
+      requests?: number;
+    }>;
+  };
   status: CursorPulseSnapshotStatus;
 };
 
@@ -43,6 +56,7 @@ export interface CursorPulseConfig {
   pollMinutes: number;
   displayMode: 'compact';
   showUnlimitedActivity: boolean;
+  showModelAnalytics: boolean;
   warningThresholdSpend: number;
   warningThresholdIncluded: number;
 }
@@ -73,7 +87,28 @@ export interface CursorInvoiceItem {
 
 export interface CursorInvoiceResponse {
   items?: CursorInvoiceItem[];
+  usageEvents?: CursorInvoiceUsageEvent[];
+  events?: CursorInvoiceUsageEvent[];
   hasUnpaidMidMonthInvoice?: boolean;
+  [key: string]: unknown;
+}
+
+export interface CursorInvoiceUsageEvent {
+  timestamp?: string;
+  createdAt?: string;
+  occurredAt?: string;
+  model?: string;
+  modelName?: string;
+  modelId?: string;
+  cents?: number;
+  costCents?: number;
+  spendCents?: number;
+  amountCents?: number;
+  numRequests?: number;
+  requests?: number;
+  requestCount?: number;
+  quantity?: number;
+  [key: string]: unknown;
 }
 
 export interface CursorAuthMeResponse {

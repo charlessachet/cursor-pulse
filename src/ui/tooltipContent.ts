@@ -76,6 +76,25 @@ export function buildTooltipMarkdown(
     markdown += '\n';
   }
 
+  if (config.showModelAnalytics) {
+    markdown += '**Today by model**\n';
+    if (!snapshot.analytics || !snapshot.analytics.available) {
+      markdown += 'Daily model breakdown unavailable for this account.\n\n';
+    } else {
+      for (const row of snapshot.analytics.topModels) {
+        markdown += `${row.model}: ${formatAnalyticsRow(row.spend, row.requests)}\n`;
+      }
+      markdown += `Total today: ${formatAnalyticsRow(
+        snapshot.analytics.totalSpend,
+        snapshot.analytics.totalRequests,
+      )}\n`;
+      markdown += `Average day this cycle: ${formatAnalyticsRow(
+        snapshot.analytics.averageDailySpend,
+        snapshot.analytics.averageDailyRequests,
+      )}\n\n`;
+    }
+  }
+
   markdown += '**Resets**\n';
   markdown += `${formatDate(snapshot.included.resetDate)}\n\n`;
 
@@ -160,4 +179,24 @@ function formatIncludedLine(
   }
 
   return `${formatIncludedValue(remaining, unit)} of ${formatIncludedValue(total, unit)} remaining\n`;
+}
+
+function formatAnalyticsRow(spend: number | undefined, requests: number | undefined): string {
+  if (spend !== undefined && requests !== undefined) {
+    return `${formatCurrency(spend)} • ${formatAnalyticsRequests(requests)}`;
+  }
+
+  if (spend !== undefined) {
+    return formatCurrency(spend);
+  }
+
+  if (requests !== undefined) {
+    return formatAnalyticsRequests(requests);
+  }
+
+  return '?';
+}
+
+function formatAnalyticsRequests(value: number): string {
+  return Number.isInteger(value) ? `${formatWhole(value)} req` : `${formatDecimal(value)} req`;
 }

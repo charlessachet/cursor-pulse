@@ -21,6 +21,13 @@ suite('mapUsagePayloadToSnapshot', () => {
     assert.equal(snapshot.spend.used, 1.52);
     assert.equal(snapshot.spend.limit, 150);
     assert.equal(snapshot.activity.beyondIncludedCount, 34);
+    assert.equal(snapshot.analytics?.available, true);
+    assert.equal(snapshot.analytics?.totalSpend, 1.52);
+    assert.equal(snapshot.analytics?.totalRequests, 34);
+    assert.equal(snapshot.analytics?.averageDailySpend, 0.11);
+    assert.equal(snapshot.analytics?.averageDailyRequests, 2.2);
+    assert.equal(snapshot.analytics?.topModels[0]?.model, 'claude-4-sonnet');
+    assert.equal(snapshot.analytics?.topModels[1]?.model, 'gpt-4.1');
   });
 
   test('maps an exhausted fixture', () => {
@@ -59,6 +66,11 @@ suite('mapUsagePayloadToSnapshot', () => {
     assert.equal(snapshot.spend.unlimited, true);
     assert.equal(snapshot.activity.avgPerDay, undefined);
     assert.equal(snapshot.activity.beyondIncludedCount, undefined);
+    assert.equal(snapshot.analytics?.available, true);
+    assert.equal(snapshot.analytics?.totalSpend, 4.2);
+    assert.equal(snapshot.analytics?.totalRequests, 23);
+    assert.equal(snapshot.analytics?.averageDailySpend, 0.25);
+    assert.equal(snapshot.analytics?.averageDailyRequests, 1.4);
   });
 
   test('tolerates partial responses and excludes payments', () => {
@@ -68,5 +80,6 @@ suite('mapUsagePayloadToSnapshot', () => {
     assert.equal(snapshot.included.remaining, 0);
     assert.equal(snapshot.spend.used, 0.8);
     assert.equal(snapshot.activity.beyondIncludedCount, 5);
+    assert.equal(snapshot.analytics?.available, false);
   });
 });

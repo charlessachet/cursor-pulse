@@ -52,7 +52,7 @@ export class CursorClient {
         body: {
           month: cycleDate.getMonth() + 1,
           year: cycleDate.getFullYear(),
-          includeUsageEvents: false,
+          includeUsageEvents: true,
         },
       },
     );

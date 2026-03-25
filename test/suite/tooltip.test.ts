@@ -6,6 +6,7 @@ const config: CursorPulseConfig = {
   pollMinutes: 15,
   displayMode: 'compact',
   showUnlimitedActivity: true,
+  showModelAnalytics: true,
   warningThresholdSpend: 0.8,
   warningThresholdIncluded: 0.1,
 };
@@ -35,6 +36,26 @@ suite('renderTooltip', () => {
           beyondIncludedCount: 34,
           projectedExhaustionDate: '2026-04-21T00:00:00.000Z',
         },
+        analytics: {
+          available: true,
+          day: '2026-03-24',
+          totalSpend: 1.52,
+          totalRequests: 34,
+          averageDailySpend: 0.76,
+          averageDailyRequests: 17,
+          topModels: [
+            {
+              model: 'claude-4-sonnet',
+              spend: 0.95,
+              requests: 21,
+            },
+            {
+              model: 'gpt-4.1',
+              spend: 0.57,
+              requests: 13,
+            },
+          ],
+        },
         status: 'ok',
       },
     };
@@ -43,6 +64,8 @@ suite('renderTooltip', () => {
     assert.match(tooltip, /Included left/);
     assert.match(tooltip, /On-demand spend/);
     assert.match(tooltip, /Activity signal/);
+    assert.match(tooltip, /Today by model/);
+    assert.match(tooltip, /Total today: \$1\.52 • 34 req/);
     assert.match(tooltip, /Billing source: Personal/);
   });
 
@@ -117,6 +140,81 @@ suite('renderTooltip', () => {
     assert.doesNotMatch(tooltip, /Activity signal/);
   });
 
+  test('renders daily model analytics for team dollar usage', () => {
+    const tooltip = buildTooltipMarkdown(
+      {
+        hasToken: true,
+        snapshot: {
+          source: 'team',
+          fetchedAt: '2026-03-24T10:42:00.000Z',
+          included: {
+            unit: 'usd',
+            remaining: 0,
+            used: 118.52,
+            resetDate: '2026-03-27T16:24:12.000Z',
+          },
+          spend: {
+            used: 1040.16,
+            unlimited: true,
+          },
+          activity: {},
+          analytics: {
+            available: true,
+            day: '2026-03-24',
+            totalSpend: 4.2,
+            totalRequests: 23,
+            averageDailySpend: 2.1,
+            averageDailyRequests: 11.5,
+            topModels: [
+              {
+                model: 'claude-4-sonnet',
+                spend: 3.4,
+                requests: 18,
+              },
+              {
+                model: 'gpt-4.1',
+                spend: 0.8,
+                requests: 5,
+              },
+            ],
+          },
+          status: 'ok',
+        },
+      },
+      config,
+    );
+
+    assert.match(tooltip, /Today by model/);
+    assert.match(tooltip, /claude-4-sonnet: \$3\.40 • 18 req/);
+    assert.match(tooltip, /gpt-4\.1: \$0\.80 • 5 req/);
+    assert.match(tooltip, /Total today: \$4\.20 • 23 req/);
+    assert.match(tooltip, /Average day this cycle: \$2\.10 • 11\.5 req/);
+  });
+
+  test('shows analytics unavailable copy when event data is missing', () => {
+    const tooltip = buildTooltipMarkdown(
+      {
+        hasToken: true,
+        snapshot: {
+          source: 'personal',
+          fetchedAt: '2026-03-24T10:42:00.000Z',
+          included: {},
+          spend: {},
+          activity: {},
+          analytics: {
+            available: false,
+            day: '2026-03-24',
+            topModels: [],
+          },
+          status: 'ok',
+        },
+      },
+      config,
+    );
+
+    assert.match(tooltip, /Daily model breakdown unavailable for this account/);
+  });
+
   test('renders stale banner', () => {
     const state: CursorPulseViewState = {
       hasToken: true,
@@ -159,6 +257,34 @@ suite('renderTooltip', () => {
     );
 
     assert.doesNotMatch(tooltip, /Activity signal/);
+  });
+
+  test('omits model analytics when disabled', () => {
+    const tooltip = buildTooltipMarkdown(
+      {
+        hasToken: true,
+        snapshot: {
+          source: 'personal',
+          fetchedAt: '2026-03-24T10:42:00.000Z',
+          included: {},
+          spend: {},
+          activity: {},
+          analytics: {
+            available: true,
+            day: '2026-03-24',
+            totalSpend: 1.2,
+            topModels: [],
+          },
+          status: 'ok',
+        },
+      },
+      {
+        ...config,
+        showModelAnalytics: false,
+      },
+    );
+
+    assert.doesNotMatch(tooltip, /Today by model/);
   });
 
   test('shows friendlier signed-out copy', () => {

@@ -43,6 +43,9 @@ export async function createExtensionRuntime(
     showUnlimitedActivity: vscode.workspace
       .getConfiguration()
       .get<boolean>('cursorPulse.showUnlimitedActivity', true),
+    showModelAnalytics: vscode.workspace
+      .getConfiguration()
+      .get<boolean>('cursorPulse.showModelAnalytics', true),
     warningThresholdSpend: vscode.workspace
       .getConfiguration()
       .get<number>('cursorPulse.warningThresholdSpend', 0.8),
@@ -69,6 +72,7 @@ export async function createExtensionRuntime(
             included: currentState.snapshot?.included ?? {},
             spend: currentState.snapshot?.spend ?? {},
             activity: currentState.snapshot?.activity ?? {},
+            analytics: currentState.snapshot?.analytics,
             status: 'loading',
           }
         : undefined,

@@ -6,6 +6,7 @@ const config: CursorPulseConfig = {
   pollMinutes: 15,
   displayMode: 'compact',
   showUnlimitedActivity: true,
+  showModelAnalytics: true,
   warningThresholdSpend: 0.8,
   warningThresholdIncluded: 0.1,
 };

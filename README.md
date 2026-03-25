@@ -12,6 +12,7 @@ V1 tracks:
 - included usage
 - extra paid usage
 - derived activity beyond the included quota
+- today-by-model usage when Cursor returns event-level invoice data
 
 It does not try to estimate Cursor's private internal compute cost.
 
@@ -200,6 +201,11 @@ Available settings:
 - Default: `true`
 - Shows or hides derived activity metrics in the tooltip
 
+### `cursorPulse.showModelAnalytics`
+
+- Default: `true`
+- Shows or hides the tooltip's today-by-model summary when Cursor returns event-level usage data
+
 ### `cursorPulse.warningThresholdSpend`
 
 - Default: `0.8`
@@ -255,6 +261,14 @@ Current fetch flow:
 If team-backed usage is available, CursorPulse prefers those included/spend values. Otherwise it falls back to the personal usage responses.
 
 For some team-billed accounts, Cursor may expose included and on-demand usage in dollars instead of request counts. In that case, CursorPulse shows money-based included usage and can label on-demand spend as unlimited when Cursor does not return a hard cap.
+
+When Cursor returns invoice usage events, the tooltip also shows:
+
+- top model rows for today
+- total usage for today
+- average daily usage across the current billing cycle
+
+If Cursor does not return event-level usage data for your account, CursorPulse shows a short unavailable message instead of guessing.
 
 The raw responses are normalized into a single internal snapshot model before the UI renders.
 

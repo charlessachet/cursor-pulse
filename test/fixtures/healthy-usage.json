@@ -20,6 +20,26 @@
     "hardLimit": 150
   },
   "invoice": {
+    "usageEvents": [
+      {
+        "timestamp": "2026-03-24T18:15:00.000Z",
+        "model": "claude-4-sonnet",
+        "cents": 95,
+        "numRequests": 21
+      },
+      {
+        "timestamp": "2026-03-24T19:20:00.000Z",
+        "model": "gpt-4.1",
+        "cents": 57,
+        "numRequests": 13
+      },
+      {
+        "timestamp": "2026-03-23T18:45:00.000Z",
+        "model": "claude-4-sonnet",
+        "cents": 100,
+        "numRequests": 18
+      }
+    ],
     "items": [
       {
         "description": "34 token-based usage calls to claude-4-sonnet, totalling: $1.52",
@@ -29,4 +49,3 @@
   },
   "cycleStart": "2026-03-01T00:00:00.000Z"
 }
-

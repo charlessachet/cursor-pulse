@@ -68,6 +68,12 @@
           "scope": "window",
           "description": "Show derived activity metrics for beyond-included usage in the tooltip."
         },
+        "cursorPulse.showModelAnalytics": {
+          "type": "boolean",
+          "default": true,
+          "scope": "window",
+          "description": "Show a today-by-model usage summary in the tooltip when Cursor returns event-level usage data."
+        },
         "cursorPulse.warningThresholdSpend": {
           "type": "number",
           "default": 0.8,
