@@ -4,7 +4,6 @@
   "description": "Private local-first Cursor usage tracking with quota, spend, and daily history in the status bar.",
   "version": "0.1.0",
   "publisher": "local",
-  "private": true,
   "engines": {
     "vscode": "^1.96.0",
     "node": ">=20.0.0"
@@ -113,5 +112,18 @@
     "mocha": "^11.1.0",
     "mock-require": "^3.0.3",
     "typescript": "^5.8.2"
-  }
+  },
+  "license": "MIT",
+  "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/charlessachet/cursor-pulse.git"
+  },
+  "keywords": [
+    "cursor",
+    "usage",
+    "tracking",
+    "status bar"
+  ],
+  "author": "Charles Sachet"
 }
