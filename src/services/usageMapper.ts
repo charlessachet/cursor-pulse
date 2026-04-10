@@ -387,11 +387,26 @@ function inferUsageEventCount(event: CursorInvoiceUsageEvent): number | undefine
 }
 
 function pickString(...values: Array<string | undefined>): string | undefined {
-  return values.find((value) => typeof value === 'string' && value.trim().length > 0)?.trim();
+  for (let i = 0; i < values.length; i++) {
+    const value = values[i];
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (trimmed.length > 0) {
+        return trimmed;
+      }
+    }
+  }
+  return undefined;
 }
 
 function pickNumber(...values: Array<number | undefined>): number | undefined {
-  return values.find((value) => typeof value === 'number' && Number.isFinite(value));
+  for (let i = 0; i < values.length; i++) {
+    const value = values[i];
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+  }
+  return undefined;
 }
 
 function nestedString(value: unknown, path: string[]): string | undefined {
