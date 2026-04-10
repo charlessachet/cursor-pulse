@@ -83,6 +83,11 @@ const SAFE_KEYS = new Set([
   'statuscode',
   'nested',
   'error',
+  'auth',
+  'userid',
+  'sub',
+  'email',
+  'name',
   // Known model names to keep usage metrics useful in diagnostics
   'gpt-4',
   'gpt-4-0613',
@@ -135,5 +140,23 @@ export function sanitizeDiagnosticsValue<T>(value: T): T {
 }
 
 function shouldRedactKey(key: string): boolean {
-  return !SAFE_KEYS.has(key.toLowerCase());
+  const normalized = key.toLowerCase();
+  // Always redact known sensitive fields even if they are in the allowlist
+  // (though they shouldn't be, this is defense in depth)
+  if (
+    normalized === 'email' ||
+    normalized === 'name' ||
+    normalized === 'picture' ||
+    normalized === 'sub' ||
+    normalized === 'userid' ||
+    normalized === 'user_id' ||
+    normalized === 'token' ||
+    normalized === 'sessiontoken' ||
+    normalized === 'session_token' ||
+    normalized === 'cookie'
+  ) {
+    return true;
+  }
+
+  return !SAFE_KEYS.has(normalized);
 }
