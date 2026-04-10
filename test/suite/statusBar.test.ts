@@ -235,4 +235,143 @@ suite('renderStatusBarText', () => {
       'CursorPulse: connect',
     );
   });
+
+  test('renders high spend warning', () => {
+    const state: CursorPulseViewState = {
+      hasToken: true,
+      snapshot: {
+        source: 'personal',
+        fetchedAt: '2026-03-24T10:42:00.000Z',
+        included: {
+          total: 500,
+          used: 100,
+          remaining: 400,
+          percentUsed: 0.2,
+        },
+        spend: {
+          used: 120,
+          limit: 150,
+          remaining: 30,
+          percentUsed: 0.8, // Exactly at threshold
+        },
+        activity: {},
+        status: 'ok',
+      },
+    };
+
+    assert.equal(renderStatusBarText(state, config), '▲ 400 | $120.00');
+  });
+
+  test('renders exhausted included quota', () => {
+    const state: CursorPulseViewState = {
+      hasToken: true,
+      snapshot: {
+        source: 'personal',
+        fetchedAt: '2026-03-24T10:42:00.000Z',
+        included: {
+          total: 500,
+          used: 500,
+          remaining: 0,
+          percentUsed: 1,
+        },
+        spend: {
+          used: 0,
+          limit: 150,
+          remaining: 150,
+          percentUsed: 0,
+        },
+        activity: {},
+        status: 'ok',
+      },
+    };
+
+    assert.equal(renderStatusBarText(state, config), '◆ 0 | $0.00');
+  });
+
+  test('renders exhausted spend limit', () => {
+    const state: CursorPulseViewState = {
+      hasToken: true,
+      snapshot: {
+        source: 'personal',
+        fetchedAt: '2026-03-24T10:42:00.000Z',
+        included: {
+          total: 500,
+          used: 500,
+          remaining: 0,
+          percentUsed: 1,
+        },
+        spend: {
+          used: 150,
+          limit: 150,
+          remaining: 0,
+          percentUsed: 1,
+        },
+        activity: {},
+        status: 'ok',
+      },
+    };
+
+    assert.equal(renderStatusBarText(state, config), '◆ 0 | $150.00');
+  });
+
+  test('handles missing spend used value', () => {
+    const state: CursorPulseViewState = {
+      hasToken: true,
+      snapshot: {
+        source: 'personal',
+        fetchedAt: '2026-03-24T10:42:00.000Z',
+        included: {
+          remaining: 10,
+        },
+        spend: {
+          // used is missing
+        },
+        activity: {},
+        status: 'ok',
+      },
+    };
+
+    assert.equal(renderStatusBarText(state, config), '◈ 10 | $0.00');
+  });
+
+  test('renders question mark for undefined remaining', () => {
+    const state: CursorPulseViewState = {
+      hasToken: true,
+      snapshot: {
+        source: 'personal',
+        fetchedAt: '2026-03-24T10:42:00.000Z',
+        included: {
+          remaining: undefined,
+        },
+        spend: {
+          used: 5.5,
+        },
+        activity: {},
+        status: 'ok',
+      },
+    };
+
+    assert.equal(renderStatusBarText(state, config), '◈ ? | $5.50');
+  });
+
+  test('formats dollar-based included usage with decimals if needed', () => {
+    const state: CursorPulseViewState = {
+      hasToken: true,
+      snapshot: {
+        source: 'team',
+        fetchedAt: '2026-03-24T10:42:00.000Z',
+        included: {
+          unit: 'usd',
+          remaining: 12.345,
+        },
+        spend: {
+          used: 0,
+        },
+        activity: {},
+        status: 'ok',
+      },
+    };
+
+    assert.equal(renderStatusBarText(state, config), '◈ $12.35 | $0.00');
+  });
 });
