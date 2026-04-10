@@ -49,6 +49,28 @@ suite('infra', () => {
     });
   });
 
+  test('sanitizeDiagnosticsValue redacts unknown keys by default', () => {
+    const sanitized = sanitizeDiagnosticsValue({
+      knownSafe: 'this is safe',
+      unknownKey: 'this should be redacted',
+      password: 'secret_password',
+      creditCard: '1234-5678-9012-3456',
+      nested: {
+        secretField: 'top secret',
+      },
+    });
+
+    assert.deepEqual(sanitized, {
+      knownSafe: '<redacted>',
+      unknownKey: '<redacted>',
+      password: '<redacted>',
+      creditCard: '<redacted>',
+      nested: {
+        secretField: '<redacted>',
+      },
+    });
+  });
+
   test('createDiagnostics writes sanitized output', () => {
     const lines: string[] = [];
     let disposed = false;
